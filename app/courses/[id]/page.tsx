@@ -6,7 +6,6 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   const { id } = await params
   const supabase = await createClient()
   const { data: auth, error: authError } = await supabase.auth.getClaims()
-
   if (authError || !auth?.claims?.sub) redirect("/auth")
 
   const [{ data: course }, { data: documents }] = await Promise.all([
@@ -26,7 +25,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             <h1 className="mt-2 text-4xl font-semibold tracking-tight">{course.title}</h1>
             <p className="mt-3 max-w-2xl text-slate-400">{course.description || "Build your study space by adding learning materials."}</p>
           </div>
-          <button className="rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold hover:bg-indigo-400">Add document</button>
+          <Link href={`/courses/${course.id}/documents`} className="rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold hover:bg-indigo-400">Add document</Link>
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
@@ -50,7 +49,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           ) : (
             <div className="mt-6 rounded-xl border border-dashed border-white/10 p-12 text-center">
               <p className="text-slate-300">No study materials yet.</p>
-              <p className="mt-2 text-sm text-slate-500">Document upload will be connected in the next module.</p>
+              <Link href={`/courses/${course.id}/documents`} className="mt-4 inline-block text-sm font-medium text-indigo-300">Upload your first document →</Link>
             </div>
           )}
         </section>
