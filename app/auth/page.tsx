@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { signIn, signUp } from './actions'
 
+const inputClass = 'w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400'
+
 export default async function AuthPage({
   searchParams,
 }: {
@@ -17,9 +19,9 @@ export default async function AuthPage({
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl">
           <div className="mb-8">
             <p className="text-sm font-medium text-indigo-300">Astra AI Learning</p>
-            <h1 className="mt-2 text-3xl font-semibold">Welcome back</h1>
+            <h1 className="mt-2 text-3xl font-semibold">Đăng nhập</h1>
             <p className="mt-2 text-sm text-slate-400">
-              Sign in to continue learning or create a new account.
+              Đăng nhập bằng tên đăng nhập và mật khẩu.
             </p>
           </div>
 
@@ -35,22 +37,22 @@ export default async function AuthPage({
           )}
 
           <form action={signIn} className="space-y-4">
-            <input name="email" type="email" required placeholder="Email" className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400" />
-            <input name="password" type="password" required minLength={6} placeholder="Password" className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400" />
+            <input name="username" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" autoComplete="username" placeholder="Tên đăng nhập" className={inputClass} />
+            <input name="password" type="password" required minLength={6} autoComplete="current-password" placeholder="Mật khẩu" className={inputClass} />
             <button className="w-full rounded-lg bg-indigo-500 px-4 py-3 text-sm font-semibold hover:bg-indigo-400">
-              Sign in
+              Đăng nhập
             </button>
           </form>
 
           <div className="my-6 h-px bg-white/10" />
 
           <form action={signUp} className="space-y-4">
-            <h2 className="text-lg font-semibold">Create account</h2>
-            <input name="fullName" placeholder="Full name" className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400" />
-            <input name="email" type="email" required placeholder="Email" className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400" />
-            <input name="password" type="password" required minLength={6} placeholder="Password (at least 6 characters)" className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-indigo-400" />
+            <h2 className="text-lg font-semibold">Tạo tài khoản</h2>
+            <input name="username" required minLength={3} maxLength={30} pattern="[A-Za-z0-9_]+" autoComplete="username" placeholder="Tên đăng nhập" className={inputClass} />
+            <input name="fullName" placeholder="Tên hiển thị (không bắt buộc)" className={inputClass} />
+            <input name="password" type="password" required minLength={6} autoComplete="new-password" placeholder="Mật khẩu (ít nhất 6 ký tự)" className={inputClass} />
             <button className="w-full rounded-lg border border-white/15 px-4 py-3 text-sm font-semibold hover:bg-white/5">
-              Create account
+              Tạo tài khoản
             </button>
           </form>
         </div>
