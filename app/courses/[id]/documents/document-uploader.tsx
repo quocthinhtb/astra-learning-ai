@@ -36,24 +36,39 @@ export function DocumentUploader({ courseId, userId }: { courseId: string; userI
       return setStatus(uploadError.message)
     }
 
-    const { error: insertError } = await supabase.from("documents").insert({
-      course_id: courseId,
-      user_id: userId,
-      name: file.name,
-      storage_path: path,
-      mime_type: file.type,
-      file_size: file.size,
-      processing_status: "pending",
-    })
+    const { data: document, error: insertError } = await supabase
+      .from("documents")
+      .insert({
+        course_id: courseId,
+        user_id: userId,
+        name: file.name,
+        storage_path: path,
+        mime_type: file.type,
+        file_size: file.size,
+        processing_status: "pending",
+      })
+      .select("id")
+      .single()
 
-    if (insertError) {
+    if (insertError || !document) {
       await supabase.storage.from("study-materials").remove([path])
       setBusy(false)
-      return setStatus(insertError.message)
+      return setStatus(insertError?.message ?? "Could not create the document record.")
     }
 
+    const response = await fetch("/api/documents/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documentId: document.id }),
+    })
+    const result = await response.json().catch(() => null)
+
     setBusy(false)
-    setStatus("Uploaded successfully. Processing will start after the document pipeline is enabled.")
+    setStatus(
+      response.ok
+        ? `Processed successfully${result?.chunks ? ` into ${result.chunks} chunks` : ""}.`
+        : result?.error ?? "The document was uploaded but could not be processed.",
+    )
     if (inputRef.current) inputRef.current.value = ""
   }
 
@@ -77,7 +92,7 @@ export function DocumentUploader({ courseId, userId }: { courseId: string; userI
         onClick={() => inputRef.current?.click()}
         className="mt-5 rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy ? "Uploading…" : "Choose file"}
+        {busy ? "Processing…" : "Choose file"}
       </button>
       {status && <p className="mt-4 text-sm text-slate-400">{status}</p>}
     </div>
