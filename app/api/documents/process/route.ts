@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/src/lib/supabase/server"
 
+const MAX_TEXT_LENGTH = 2_000_000
 const CHUNK_SIZE = 1800
 const CHUNK_OVERLAP = 200
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
 
   const { data: document, error: documentError } = await supabase
     .from("documents")
-    .select("id,name,storage_path,mime_type,course_id")
+    .select("id,storage_path,mime_type")
     .eq("id", documentId)
     .eq("user_id", userId)
     .maybeSingle()
@@ -40,11 +41,15 @@ export async function POST(request: Request) {
   if (documentError) return NextResponse.json({ error: documentError.message }, { status: 500 })
   if (!document) return NextResponse.json({ error: "Document not found" }, { status: 404 })
 
-  await supabase.from("documents").update({ processing_status: "processing", processing_error: null }).eq("id", document.id)
+  await supabase
+    .from("documents")
+    .update({ processing_status: "processing", processing_error: null })
+    .eq("id", document.id)
+    .eq("user_id", userId)
 
   try {
     if (document.mime_type !== "text/plain") {
-      throw new Error("This first processing version supports TXT files. PDF, PPTX and DOCX extraction will be added with dedicated parsers.")
+      throw new Error("TXT processing is enabled first. PDF, PPTX and DOCX extraction will be added with dedicated parsers.")
     }
 
     const { data: file, error: downloadError } = await supabase.storage
@@ -53,6 +58,10 @@ export async function POST(request: Request) {
     if (downloadError) throw downloadError
 
     const text = await file.text()
+    if (text.length > MAX_TEXT_LENGTH) {
+      throw new Error("TXT files must contain 2 MB or less of text for this processing version.")
+    }
+
     const chunks = chunkText(text)
     if (!chunks.length) throw new Error("The document does not contain readable text.")
 
